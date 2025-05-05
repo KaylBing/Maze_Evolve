@@ -13,7 +13,7 @@ class TerribleSolver:
         self.end_pos = (self.rows-1, self.cols-1)  # End at bottom-right
         self.visited = set()
         self.steps = 0
-        self.max_steps = 10000  # Give up after this many steps
+        self.max_steps = 1000000  # Give up after this many steps
         self.solved = False
         self.gave_up = False
 
