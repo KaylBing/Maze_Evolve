@@ -5,10 +5,24 @@ import time
 # Initialize pygame
 pygame.init()
 
-# Constants
-WIDTH, HEIGHT = 800, 800
-CELL_SIZE = 40
+# Configurable parameters
+MAZE_SIZE = "large"  # Options: "small", "medium", "large", "huge"
+
+# Size presets
+size_presets = {
+    "small": {"cell": 40, "width": 800, "height": 800},
+    "medium": {"cell": 30, "width": 900, "height": 900},
+    "large": {"cell": 20, "width": 1000, "height": 1000},
+    "huge": {"cell": 15, "width": 1200, "height": 1200}
+}
+
+# Set constants based on preset
+CELL_SIZE = size_presets[MAZE_SIZE]["cell"]
+WIDTH = size_presets[MAZE_SIZE]["width"]
+HEIGHT = size_presets[MAZE_SIZE]["height"]
 ROWS, COLS = HEIGHT // CELL_SIZE, WIDTH // CELL_SIZE
+
+# Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
@@ -17,7 +31,7 @@ BLUE = (0, 0, 255)
 
 # Set up the display
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Maze Generator")
+pygame.display.set_caption(f"Maze Generator ({MAZE_SIZE} - {COLS}x{ROWS})")
 clock = pygame.time.Clock()
 
 class Cell:
@@ -37,14 +51,16 @@ class Cell:
         if self.visited:
             pygame.draw.rect(screen, WHITE, (x, y, CELL_SIZE, CELL_SIZE))
 
+        wall_thickness = 1 if CELL_SIZE < 20 else 2  # Thinner walls for small cells
+
         if self.walls['top']:
-            pygame.draw.line(screen, BLACK, (x, y), (x + CELL_SIZE, y), 2)
+            pygame.draw.line(screen, BLACK, (x, y), (x + CELL_SIZE, y), wall_thickness)
         if self.walls['right']:
-            pygame.draw.line(screen, BLACK, (x + CELL_SIZE, y), (x + CELL_SIZE, y + CELL_SIZE), 2)
+            pygame.draw.line(screen, BLACK, (x + CELL_SIZE, y), (x + CELL_SIZE, y + CELL_SIZE), wall_thickness)
         if self.walls['bottom']:
-            pygame.draw.line(screen, BLACK, (x, y + CELL_SIZE), (x + CELL_SIZE, y + CELL_SIZE), 2)
+            pygame.draw.line(screen, BLACK, (x, y + CELL_SIZE), (x + CELL_SIZE, y + CELL_SIZE), wall_thickness)
         if self.walls['left']:
-            pygame.draw.line(screen, BLACK, (x, y), (x, y + CELL_SIZE), 2)
+            pygame.draw.line(screen, BLACK, (x, y), (x, y + CELL_SIZE), wall_thickness)
 
     def draw_current(self, screen):
         x = self.col * CELL_SIZE + CELL_SIZE // 4
@@ -52,6 +68,7 @@ class Cell:
         pygame.draw.rect(screen, RED, (x, y, CELL_SIZE // 2, CELL_SIZE // 2))
 
 def create_grid():
+    print(f"Creating grid: {COLS}x{ROWS} (Total cells: {COLS*ROWS})")
     grid = []
     for row in range(ROWS):
         grid.append([])
@@ -112,28 +129,23 @@ def generate_maze():
                     stack = []
                     current = grid[0][0]
                     current.visited = True
+                elif event.key == pygame.K_ESCAPE:
+                    running = False
 
         if generating:
-            # Step 1: Get unvisited neighbors
             neighbors = get_unvisited_neighbors(current, grid)
 
             if neighbors:
-                # Step 2: Choose random neighbor
                 next_cell = random.choice(neighbors)
-
-                # Step 3: Push current to stack
                 stack.append(current)
-
-                # Step 4: Remove wall between current and next
                 remove_walls(current, next_cell)
-
-                # Step 5: Mark next as visited and make it current
                 next_cell.visited = True
                 current = next_cell
             elif stack:
                 current = stack.pop()
             else:
                 generating = False
+                print("Maze generation complete!")
 
         # Draw everything
         screen.fill(WHITE)
@@ -151,4 +163,5 @@ def generate_maze():
     pygame.quit()
 
 if __name__ == "__main__":
+    print(f"Generating {MAZE_SIZE} maze ({COLS}x{ROWS})")
     generate_maze()
